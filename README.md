@@ -10,6 +10,8 @@
 
 **LearnEase Pro** is a modern, responsive, production-ready full-stack eLearning Management System (LMS) inspired by minimal educational SaaS platforms. It is built on the **MERN Stack** (MongoDB, Express.js, React 18 with Vite, Node.js) and features real-time WebSocket communication, micro-animations, role-based dashboards, secure payments, and cryptographic completion certificates.
 
+<img width="1917" height="867" alt="image" src="https://github.com/user-attachments/assets/20c61a47-cbbb-4c25-b0e8-c63e3aca11de" />
+
 ---
 
 ## 🎨 UI/UX Design System & Color Tokens
