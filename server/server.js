@@ -14,7 +14,6 @@ dotenv.config();
 
 // Connect Database
 import connectDB from './config/db.js';
-connectDB();
 
 // Sockets
 import { setupChatSocket } from './sockets/chatSocket.js';
@@ -42,24 +41,26 @@ import { errorHandler } from './middleware/error.js';
 const app = express();
 const server = http.createServer(app);
 
-// Permissive CORS check for development (localhost, 127.0.0.1, LAN IP)
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  ...(process.env.NODE_ENV !== 'production'
+    ? [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+      ]
+    : []),
+].filter(Boolean);
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps, curl, postman)
-    if (!origin) return callback(null, true);
-    if (
-      origin.includes('localhost') ||
-      origin.includes('127.0.0.1') ||
-      origin.startsWith('http://192.168.') ||
-      origin.startsWith('http://10.') ||
-      origin === process.env.CLIENT_URL
-    ) {
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(null, true);
+
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 };
 
 // Initialize Socket.io with CORS
@@ -100,6 +101,20 @@ if (process.env.NODE_ENV !== 'production') {
 const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+let dbConnectionPromise;
+app.use(async (req, res, next) => {
+  try {
+    if (!dbConnectionPromise) {
+      dbConnectionPromise = connectDB();
+    }
+    await dbConnectionPromise;
+    next();
+  } catch (error) {
+    dbConnectionPromise = undefined;
+    next(error);
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -138,7 +153,14 @@ app.use((req, res, next) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`[LearnEase Pro Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-});
+
+if (process.env.NODE_ENV !== 'production') {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(
+      `[LearnEase Pro Server] Running on http://localhost:${PORT}`
+    );
+  });
+}
+
+export default server;
 
