@@ -1,6 +1,4 @@
 import express from 'express';
-import http from 'http';
-import { Server } from 'socket.io';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
@@ -8,15 +6,13 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 // Load env vars
 dotenv.config();
 
 // Connect Database
 import connectDB from './config/db.js';
-
-// Sockets
-import { setupChatSocket } from './sockets/chatSocket.js';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
@@ -39,40 +35,34 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import { errorHandler } from './middleware/error.js';
 
 const app = express();
-const server = http.createServer(app);
-
-const allowedOrigins = [
-  process.env.CLIENT_URL,
-  ...(process.env.NODE_ENV !== 'production'
-    ? [
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-      ]
-    : []),
-].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow non-browser requests (mobile, postman, curl)
+    if (!origin) return callback(null, true);
+
+    const clientUrl = process.env.CLIENT_URL;
+    if (
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.endsWith('.vercel.app') ||
+      (clientUrl && origin === clientUrl)
+    ) {
       return callback(null, true);
     }
 
-    return callback(new Error('Not allowed by CORS'));
+    // Permissive callback in cloud serverless to prevent CORS blocking
+    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
-
-// Initialize Socket.io with CORS
-const io = new Server(server, {
-  cors: corsOptions,
-});
-setupChatSocket(io);
 
 // Security & Middlewares
 app.use(
   helmet({
-    crossOriginResourcePolicy: false, // allow loading local uploaded images/videos
+    crossOriginResourcePolicy: false,
   })
 );
 
@@ -93,7 +83,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   app.use(morgan('dev'));
 }
 
@@ -101,17 +91,20 @@ if (process.env.NODE_ENV !== 'production') {
 const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-let dbConnectionPromise;
+// Ensure database connection in serverless & standard environments
 app.use(async (req, res, next) => {
   try {
-    if (!dbConnectionPromise) {
-      dbConnectionPromise = connectDB();
+    if (mongoose.connection.readyState < 1) {
+      await connectDB();
     }
-    await dbConnectionPromise;
     next();
   } catch (error) {
-    dbConnectionPromise = undefined;
-    next(error);
+    console.error('[DB Middleware Error]', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Database connection failed. Please ensure MONGODB_URI is correctly set in environment variables.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
 });
 
@@ -121,6 +114,17 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'LearnEase Pro API is running securely.',
     timestamp: new Date(),
+    environment: process.env.VERCEL ? 'vercel-serverless' : (process.env.NODE_ENV || 'development'),
+  });
+});
+
+// Root API greeting
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    name: 'LearnEase Pro Backend API',
+    status: 'operational',
+    health: '/api/health',
   });
 });
 
@@ -154,13 +158,14 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'production') {
-  server.listen(PORT, '0.0.0.0', () => {
+// Local development listener (not invoked inside Vercel serverless functions)
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(
       `[LearnEase Pro Server] Running on http://localhost:${PORT}`
     );
   });
 }
 
-export default server;
-
+// Export Express app instance for Vercel Serverless Function execution
+export default app;

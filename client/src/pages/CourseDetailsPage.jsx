@@ -393,9 +393,8 @@ const CourseDetailsPage = () => {
                     className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:text-[#F45B48] transition-all hover:scale-105 active:scale-95"
                   >
                     <Heart
-                      className={`w-4 h-4 ${
-                        isWishlisted ? 'fill-[#F45B48] text-[#F45B48]' : 'currentColor'
-                      }`}
+                      className={`w-4 h-4 ${isWishlisted ? 'fill-[#F45B48] text-[#F45B48]' : 'currentColor'
+                        }`}
                     />
                   </button>
                   <button
@@ -539,9 +538,8 @@ const CourseDetailsPage = () => {
                             {mod.lessons?.length || 0} lessons
                           </span>
                           <ChevronDown
-                            className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${
-                              isExpanded ? 'rotate-180 text-[#128F80]' : ''
-                            }`}
+                            className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#128F80]' : ''
+                              }`}
                           />
                         </div>
                       </button>
@@ -618,11 +616,10 @@ const CourseDetailsPage = () => {
                           className="p-1 hover:scale-110 transition-transform"
                         >
                           <Star
-                            className={`w-5 h-5 ${
-                              star <= ratingInput
-                                ? 'fill-amber-400 text-amber-400'
-                                : 'text-gray-300 dark:text-gray-600'
-                            }`}
+                            className={`w-5 h-5 ${star <= ratingInput
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-gray-300 dark:text-gray-600'
+                              }`}
                           />
                         </button>
                       ))}
