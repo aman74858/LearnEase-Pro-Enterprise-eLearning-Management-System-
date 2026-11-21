@@ -2,6 +2,7 @@
   "name": "learnease-pro",
   "version": "1.0.0",
   "description": "LearnEase Pro — Full-Stack eLearning Management System (MERN)",
+  "type": "module",
   "scripts": {
     "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run server:dev\" \"npm run client\"",
     "start": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run server\" \"npm run client\"",
@@ -9,6 +10,7 @@
     "server:dev": "cd server && npm run dev",
     "client": "cd client && npm run dev",
     "seed": "cd server && npm run seed",
+    "build": "echo 'Root build completed'",
     "build:client": "cd client && npm run build"
   },
   "keywords": [
