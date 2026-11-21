@@ -1,11 +1,15 @@
 {
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": null,
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/api/index.js"
+      "src": "server/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server/server.js"
     }
   ]
 }
