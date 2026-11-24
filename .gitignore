@@ -22,7 +22,10 @@ yarn-error.log*
 server/uploads/*
 !server/uploads/.gitkeep
 
-# Operating System Files
+# Operating System & IDE Files
 .DS_Store
 Thumbs.db
+.history/
+.tsupgrader/
+
 
