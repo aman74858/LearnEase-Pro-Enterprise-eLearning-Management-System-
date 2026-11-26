@@ -193,17 +193,21 @@ export const updateProgress = async (req, res, next) => {
       });
 
       if (!cert) {
+        // Generate a certificateId and fetch course info
+        const generatedId = `LEP-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         const course = await Course.findById(courseId).populate('instructor', 'name');
         cert = await Certificate.create({
+          certificateId: generatedId,
           student: req.user.id,
           course: courseId,
           instructor: course.instructor._id,
-          studentName: req.user.name,
+          studentName: req.user.name || 'Student',
           courseTitle: course.title,
           instructorName: course.instructor.name,
           grade: 'A - Mastery',
           verificationUrl: `/verify-certificate`,
         });
+
       }
 
       enrollment.certificate = cert._id;

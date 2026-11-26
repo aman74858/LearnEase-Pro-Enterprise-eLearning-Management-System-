@@ -129,7 +129,7 @@ const ClassroomPage = () => {
   }, [socket, chatRoom?._id]);
 
   const handleToggleLessonComplete = async (lessonId) => {
-    const isAlreadyCompleted = enrollment?.completedLessons?.includes(lessonId);
+    const isAlreadyCompleted = enrollment?.completedLessons?.map(String)?.includes(String(lessonId));
     try {
       const res = await api.post(`/enrollments/course/${course._id}/progress`, {
         lessonId,
@@ -217,7 +217,7 @@ const ClassroomPage = () => {
     );
   }
 
-  const isCurrentLessonCompleted = enrollment?.completedLessons?.includes(activeLesson?._id);
+  const isCurrentLessonCompleted = enrollment?.completedLessons?.map(String)?.includes(String(activeLesson?._id));
 
   return (
     <div className="pt-24 pb-12 bg-[#F5F7FA] dark:bg-[#0F1319] min-h-screen transition-colors">
@@ -595,7 +595,7 @@ const ClassroomPage = () => {
                   <div className="divide-y divide-gray-100 dark:divide-gray-800/60">
                     {mod.lessons?.map((lesson) => {
                       const isActive = activeLesson?._id === lesson._id;
-                      const isCompleted = enrollment?.completedLessons?.includes(lesson._id);
+                      const isCompleted = enrollment?.completedLessons?.map(String)?.includes(String(lesson._id));
 
                       return (
                         <button
