@@ -14,7 +14,7 @@
 
 ---
 ## 🚀 Live Deployment 
-<a href="https://learn-ease-pro-enterprise-e-learning-management-syst-9cmt42we4.vercel.app/">
+<a href="https://learn-ease-pro-enterprise-e-learning-manageme-git-4ac1ab-a-261c.vercel.app/">
   Visit LearnEase Pro
 </a>
 
