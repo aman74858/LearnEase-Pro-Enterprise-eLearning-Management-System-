@@ -7,6 +7,8 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 
 // Load env vars
 dotenv.config();
@@ -35,6 +37,56 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import { errorHandler } from './middleware/error.js';
 
 const app = express();
+const httpServer = createServer(app);
+
+// ─── Socket.io Setup ────────────────────────────────────────────────────────
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: (origin, cb) => cb(null, true),
+    credentials: true,
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Track connected users: userId → socketId
+const onlineUsers = new Map();
+
+io.on('connection', (socket) => {
+  // Client registers itself with its user _id
+  socket.on('register_user', (userId) => {
+    if (userId) {
+      onlineUsers.set(userId.toString(), socket.id);
+      io.emit('online_users_count', onlineUsers.size);
+    }
+  });
+
+  // Allow clients to join a room (e.g. course chat room)
+  socket.on('join_room', (roomId) => {
+    socket.join(roomId);
+  });
+
+  socket.on('leave_room', (roomId) => {
+    socket.leave(roomId);
+  });
+
+  // Broadcast new chat message to a room
+  socket.on('send_message', (data) => {
+    io.to(data.roomId).emit('new_message', data);
+  });
+
+  socket.on('disconnect', () => {
+    for (const [userId, sid] of onlineUsers.entries()) {
+      if (sid === socket.id) {
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+    io.emit('online_users_count', onlineUsers.size);
+  });
+});
+
+// Expose io instance for use in controllers (e.g. real-time notifications)
+export { io };
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -160,7 +212,7 @@ const PORT = process.env.PORT || 5000;
 
 // Local development listener (not invoked inside Vercel serverless functions)
 if (!process.env.VERCEL) {
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(
       `[LearnEase Pro Server] Running on http://localhost:${PORT}`
     );
