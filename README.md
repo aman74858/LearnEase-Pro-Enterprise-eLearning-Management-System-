@@ -13,7 +13,11 @@
 <img width="1917" height="867" alt="image" src="https://github.com/user-attachments/assets/20c61a47-cbbb-4c25-b0e8-c63e3aca11de" />
 
 ---
-<a scr="https://learn-ease-pro-enterprise-e-learning-management-syst-9cmt42we4.vercel.app/">Visit my page</a>
+## 🚀 Live Deployment 
+<a href="https://learn-ease-pro-enterprise-e-learning-management-syst-9cmt42we4.vercel.app/">
+  Visit LearnEase Pro
+</a>
+
 ## 🎨 UI/UX Design System & Color Tokens
 
 The visual identity follows a modern, accessible palette with full light and dark mode persistence:
